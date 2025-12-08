@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowDownUp, ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { useFilter } from "../Context/filterContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 const DiamondTable = ({ showTotal, showIcon }) => {
 
@@ -42,7 +43,7 @@ const DiamondTable = ({ showTotal, showIcon }) => {
         return () => clearTimeout(timeout);
     }, [search]);
 
-    const { data: diamond } = useQuery({
+    const { data: diamond, isLoading: diamondLoading } = useQuery({
         queryKey: ["diamond", sortData, page, record, kapanNumber, paymentStatusId, statusId, partyId, searchTerm, startDate, endDate],
         queryFn: () =>
             diamondData({
@@ -216,6 +217,8 @@ const DiamondTable = ({ showTotal, showIcon }) => {
         }
     }
 
+    const skeletonRows = Array.from({ length: 10 }, (_, i) => i);
+
 
     return (
         <div className="h-full flex flex-col justify-between p-2 md:p-0">
@@ -341,275 +344,295 @@ const DiamondTable = ({ showTotal, showIcon }) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {(diamond?.data || []).map((item, index) => (
-                                        <tr
-                                            key={index}
-                                            className={`text-center text-[13px] transition-all hover:bg-base-300`}
-                                        >
-                                            <td className="px-2 py-3.5 whitespace-nowrap">{(page - 1) * record + (index + 1)}</td>
+                                    {diamondLoading
+                                        ? (
+                                            skeletonRows.map((i) => (
+                                                <tr key={i} className="animate-pulse text-center text-[13px]">
+                                                    {Array.from({ length: 20 }).map((_, j) => (
+                                                        <td key={j} className="px-2 py-3.5">
+                                                            <div className="h-4 bg-gray-300 rounded w-full"></div>
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            diamond?.data || []).map((item, index) => (
+                                                <motion.tr
+                                                    key={item._id}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{
+                                                        duration: 0.25,
+                                                        delay: index * 0.07,
+                                                        ease: "easeOut"
+                                                    }}
+                                                    className={`text-center text-[13px] hover:bg-base-300`}
+                                                >
+                                                    <td className="px-2 py-3.5 whitespace-nowrap">{(page - 1) * record + (index + 1)}</td>
 
-                                            {boxValue.id == item._id && boxValue.field == "partyId"
-                                                ? (
-                                                    <td>
-                                                        <select
-                                                            id="party"
-                                                            disabled={partiesLoading}
-                                                            className="select select-bordered w-50"
-                                                            value={boxValue.currentValue || ""}
-                                                            onChange={(e) =>
-                                                                setBoxValue({ ...boxValue, currentValue: e.target.value })
-                                                            }
-                                                            ref={inputRef}
-                                                            aria-label="Select party"
-                                                        >
-                                                            <option value="" disabled>
-                                                                {partiesLoading ? "Loading..." : "Select party"}
-                                                            </option>
+                                                    {boxValue.id == item._id && boxValue.field == "partyId"
+                                                        ? (
+                                                            <td>
+                                                                <select
+                                                                    id="party"
+                                                                    disabled={partiesLoading}
+                                                                    className="select select-bordered w-50"
+                                                                    value={boxValue.currentValue || ""}
+                                                                    onChange={(e) =>
+                                                                        setBoxValue({ ...boxValue, currentValue: e.target.value })
+                                                                    }
+                                                                    ref={inputRef}
+                                                                    aria-label="Select party"
+                                                                >
+                                                                    <option value="" disabled>
+                                                                        {partiesLoading ? "Loading..." : "Select party"}
+                                                                    </option>
 
-                                                            {partyOptions.map((opt) => (
-                                                                <option key={opt.value} value={opt.value}>
-                                                                    {opt.label}
-                                                                </option>
-                                                            ))}
-                                                        </select></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "partyId", item.partyId?._id)}>{item.partyId?.name || "-"}</td>
-                                                )}
+                                                                    {partyOptions.map((opt) => (
+                                                                        <option key={opt.value} value={opt.value}>
+                                                                            {opt.label}
+                                                                        </option>
+                                                                    ))}
+                                                                </select></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "partyId", item.partyId?._id)}>{item.partyId?.name || "-"}</td>
+                                                        )}
 
-                                            {boxValue.id == item._id && boxValue.field == "date"
-                                                ? (
-                                                    <td><input type="date" className="border rounded-md p-1" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "date", item.date)}>{item.date ? new Date(item.date).toLocaleDateString() : "-"}</td>
-                                                )}
-                                            <td className="px-2 py-3.5 whitespace-nowrap">KD{item.uniqueId || "-"}</td>
-                                            {boxValue.id == item._id && boxValue.field == "kapanNumber"
-                                                ? (
-                                                    <td><input type="text" className="border rounded-md p-1 w-35" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "kapanNumber", item.kapanNumber)}>{item.kapanNumber || "-"}</td>
-                                                )}
-                                            {boxValue.id == item._id && boxValue.field == "PKTNumber"
-                                                ? (
-                                                    <td><input type="text" className="border rounded-md p-1 w-35" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "PKTNumber", item.PKTNumber)}>{item.PKTNumber || "-"}</td>
-                                                )}
-                                            {boxValue.id == item._id && boxValue.field == "issueWeight"
-                                                ? (
-                                                    <td><input type="number" className="border rounded-md p-1 w-18" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "issueWeight", item.issueWeight)}>{item.issueWeight || "-"}</td>
-                                                )}
-                                            {boxValue.id == item._id && boxValue.field == "expectedWeight"
-                                                ? (
-                                                    <td><input type="number" className="border rounded-md p-1 w-18" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "expectedWeight", item.expectedWeight)}>{item.expectedWeight || "-"}</td>
-                                                )}
+                                                    {boxValue.id == item._id && boxValue.field == "date"
+                                                        ? (
+                                                            <td><input type="date" className="border rounded-md p-1" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "date", item.date)}>{item.date ? new Date(item.date).toLocaleDateString() : "-"}</td>
+                                                        )}
+                                                    <td className="px-2 py-3.5 whitespace-nowrap">KD{item.uniqueId || "-"}</td>
+                                                    {boxValue.id == item._id && boxValue.field == "kapanNumber"
+                                                        ? (
+                                                            <td><input type="text" className="border rounded-md p-1 w-35" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "kapanNumber", item.kapanNumber)}>{item.kapanNumber || "-"}</td>
+                                                        )}
+                                                    {boxValue.id == item._id && boxValue.field == "PKTNumber"
+                                                        ? (
+                                                            <td><input type="text" className="border rounded-md p-1 w-35" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "PKTNumber", item.PKTNumber)}>{item.PKTNumber || "-"}</td>
+                                                        )}
+                                                    {boxValue.id == item._id && boxValue.field == "issueWeight"
+                                                        ? (
+                                                            <td><input type="number" className="border rounded-md p-1 w-18" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "issueWeight", item.issueWeight)}>{item.issueWeight || "-"}</td>
+                                                        )}
+                                                    {boxValue.id == item._id && boxValue.field == "expectedWeight"
+                                                        ? (
+                                                            <td><input type="number" className="border rounded-md p-1 w-18" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "expectedWeight", item.expectedWeight)}>{item.expectedWeight || "-"}</td>
+                                                        )}
 
-                                            {boxValue.id == item._id && boxValue.field == "shapeId"
-                                                ? (
-                                                    <td>
-                                                        <select
-                                                            id="shape"
-                                                            disabled={shapesLoading}
-                                                            className="select select-bordered w-30"
-                                                            value={boxValue.currentValue || ""}
-                                                            onChange={(e) =>
-                                                                setBoxValue({ ...boxValue, currentValue: e.target.value })
-                                                            }
-                                                            ref={inputRef}
-                                                            aria-label="Select shape"
-                                                        >
-                                                            <option value="" disabled>
-                                                                {shapesLoading ? "Loading..." : "Select shape"}
-                                                            </option>
+                                                    {boxValue.id == item._id && boxValue.field == "shapeId"
+                                                        ? (
+                                                            <td>
+                                                                <select
+                                                                    id="shape"
+                                                                    disabled={shapesLoading}
+                                                                    className="select select-bordered w-30"
+                                                                    value={boxValue.currentValue || ""}
+                                                                    onChange={(e) =>
+                                                                        setBoxValue({ ...boxValue, currentValue: e.target.value })
+                                                                    }
+                                                                    ref={inputRef}
+                                                                    aria-label="Select shape"
+                                                                >
+                                                                    <option value="" disabled>
+                                                                        {shapesLoading ? "Loading..." : "Select shape"}
+                                                                    </option>
 
-                                                            {shapeOptions.map((opt) => (
-                                                                <option key={opt.value} value={opt.value}>
-                                                                    {opt.label}
-                                                                </option>
-                                                            ))}
-                                                        </select>
+                                                                    {shapeOptions.map((opt) => (
+                                                                        <option key={opt.value} value={opt.value}>
+                                                                            {opt.label}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "shapeId", item.shapeId?._id)}>{item.shapeId?.name || "-"}</td>
+                                                        )}
+
+                                                    {boxValue.id == item._id && boxValue.field == "polishWeight"
+                                                        ? (
+                                                            <td><input type="number" className="border rounded-md p-1 w-18" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "polishWeight", item.polishWeight)}>{item.polishWeight || "-"}</td>
+                                                        )}
+
+                                                    {boxValue.id == item._id && boxValue.field == "colorId"
+                                                        ? (
+                                                            <td>
+                                                                <select
+                                                                    id="color"
+                                                                    disabled={colorsLoading}
+                                                                    className="select select-bordered w-30"
+                                                                    value={boxValue.currentValue || ""}
+                                                                    onChange={(e) =>
+                                                                        setBoxValue({ ...boxValue, currentValue: e.target.value })
+                                                                    }
+                                                                    ref={inputRef}
+                                                                    aria-label="Select color"
+                                                                >
+                                                                    <option value="" disabled>
+                                                                        {colorsLoading ? "Loading..." : "Select color"}
+                                                                    </option>
+
+                                                                    {colorOptions.map((opt) => (
+                                                                        <option key={opt.value} value={opt.value}>
+                                                                            {opt.label}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "colorId", item.colorId?._id)}>{item.colorId?.name || "-"}</td>
+                                                        )}
+
+                                                    {boxValue.id == item._id && boxValue.field == "clarityId"
+                                                        ? (
+                                                            <td>
+                                                                <select
+                                                                    id="clarity"
+                                                                    disabled={clariteisLoading}
+                                                                    className="select select-bordered w-30"
+                                                                    value={boxValue.currentValue || ""}
+                                                                    onChange={(e) =>
+                                                                        setBoxValue({ ...boxValue, currentValue: e.target.value })
+                                                                    }
+                                                                    ref={inputRef}
+                                                                    aria-label="Select clarity"
+                                                                >
+                                                                    <option value="" disabled>
+                                                                        {clariteisLoading ? "Loading..." : "Select clarity"}
+                                                                    </option>
+
+                                                                    {clarityOptions.map((opt) => (
+                                                                        <option key={opt.value} value={opt.value}>
+                                                                            {opt.label}
+                                                                        </option>
+                                                                    ))}
+                                                                </select></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "clarityId", item.clarityId?._id)}>{item.clarityId?.name || "-"}</td>
+                                                        )}
+
+                                                    {boxValue.id == item._id && boxValue.field == "polishDate"
+                                                        ? (
+                                                            <td><input type="date" className="border rounded-md p-1" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "polishDate", item.polishDate)}>{item.polishDate ? new Date(item.polishDate).toLocaleDateString() : "-"}</td>
+                                                        )}
+
+                                                    <td className="px-2 py-3.5 whitespace-nowrap">{item.rate || "-"}</td>
+                                                    <td className="px-2 py-3.5 whitespace-nowrap">
+                                                        {item.amount != null ? item.amount.toFixed(2) : "-"}
                                                     </td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "shapeId", item.shapeId?._id)}>{item.shapeId?.name || "-"}</td>
-                                                )}
 
-                                            {boxValue.id == item._id && boxValue.field == "polishWeight"
-                                                ? (
-                                                    <td><input type="number" className="border rounded-md p-1 w-18" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "polishWeight", item.polishWeight)}>{item.polishWeight || "-"}</td>
-                                                )}
+                                                    {boxValue.id == item._id && boxValue.field == "statusId"
+                                                        ? (
+                                                            <td>
+                                                                <select
+                                                                    id="status"
+                                                                    disabled={statusLoading}
+                                                                    className="select select-bordered w-30"
+                                                                    value={boxValue.currentValue || ""}
+                                                                    onChange={(e) =>
+                                                                        setBoxValue({ ...boxValue, currentValue: e.target.value })
+                                                                    }
+                                                                    ref={inputRef}
+                                                                    aria-label="Select status"
+                                                                >
+                                                                    <option value="" disabled>
+                                                                        {statusLoading ? "Loading..." : "Select status"}
+                                                                    </option>
 
-                                            {boxValue.id == item._id && boxValue.field == "colorId"
-                                                ? (
-                                                    <td>
-                                                        <select
-                                                            id="color"
-                                                            disabled={colorsLoading}
-                                                            className="select select-bordered w-30"
-                                                            value={boxValue.currentValue || ""}
-                                                            onChange={(e) =>
-                                                                setBoxValue({ ...boxValue, currentValue: e.target.value })
-                                                            }
-                                                            ref={inputRef}
-                                                            aria-label="Select color"
-                                                        >
-                                                            <option value="" disabled>
-                                                                {colorsLoading ? "Loading..." : "Select color"}
-                                                            </option>
+                                                                    {statusOptions.map((opt) => (
+                                                                        <option key={opt.value} value={opt.value}>
+                                                                            {opt.label}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "statusId", item.statusId?._id)}>{item.statusId?.name || "-"}</td>
+                                                        )}
 
-                                                            {colorOptions.map((opt) => (
-                                                                <option key={opt.value} value={opt.value}>
-                                                                    {opt.label}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "colorId", item.colorId?._id)}>{item.colorId?.name || "-"}</td>
-                                                )}
+                                                    {boxValue.id == item._id && boxValue.field == "HPHTWeight"
+                                                        ? (
+                                                            <td><input type="number" className="border rounded-md p-1 w-18" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "HPHTWeight", item.HPHTWeight)}>{item.HPHTWeight || "-"}</td>
+                                                        )}
 
-                                            {boxValue.id == item._id && boxValue.field == "clarityId"
-                                                ? (
-                                                    <td>
-                                                        <select
-                                                            id="clarity"
-                                                            disabled={clariteisLoading}
-                                                            className="select select-bordered w-30"
-                                                            value={boxValue.currentValue || ""}
-                                                            onChange={(e) =>
-                                                                setBoxValue({ ...boxValue, currentValue: e.target.value })
-                                                            }
-                                                            ref={inputRef}
-                                                            aria-label="Select clarity"
-                                                        >
-                                                            <option value="" disabled>
-                                                                {clariteisLoading ? "Loading..." : "Select clarity"}
-                                                            </option>
+                                                    {boxValue.id == item._id && boxValue.field == "HPHTDate"
+                                                        ? (
+                                                            <td><input type="date" className="border rounded-md p-1" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "HPHTDate", item.HPHTDate)}>{item.HPHTDate ? new Date(item.HPHTDate).toLocaleDateString() : "-"}</td>
+                                                        )}
 
-                                                            {clarityOptions.map((opt) => (
-                                                                <option key={opt.value} value={opt.value}>
-                                                                    {opt.label}
-                                                                </option>
-                                                            ))}
-                                                        </select></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "clarityId", item.clarityId?._id)}>{item.clarityId?.name || "-"}</td>
-                                                )}
+                                                    {boxValue.id == item._id && boxValue.field == "paymentStatusId"
+                                                        ? (
+                                                            <td>
+                                                                <select
+                                                                    id="paymentStatus"
+                                                                    disabled={paymentStatusLoading}
+                                                                    className="select select-bordered w-30"
+                                                                    value={boxValue.currentValue || ""}
+                                                                    onChange={(e) =>
+                                                                        setBoxValue({ ...boxValue, currentValue: e.target.value })
+                                                                    }
+                                                                    ref={inputRef}
+                                                                    aria-label="Select payment status"
+                                                                >
+                                                                    <option value="" disabled>
+                                                                        {paymentStatusLoading ? "Loading..." : "Select payment status"}
+                                                                    </option>
 
-                                            {boxValue.id == item._id && boxValue.field == "polishDate"
-                                                ? (
-                                                    <td><input type="date" className="border rounded-md p-1" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "polishDate", item.polishDate)}>{item.polishDate ? new Date(item.polishDate).toLocaleDateString() : "-"}</td>
-                                                )}
+                                                                    {paymentStatusOptions.map((opt) => (
+                                                                        <option key={opt.value} value={opt.value}>
+                                                                            {opt.label}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "paymentStatusId", item.paymentStatusId?._id)}>{item.paymentStatusId?.name || "-"}</td>
+                                                        )}
 
-                                            <td className="px-2 py-3.5 whitespace-nowrap">{item.rate || "-"}</td>
-                                            <td className="px-2 py-3.5 whitespace-nowrap">
-                                                {item.amount != null ? item.amount.toFixed(2) : "-"}
-                                            </td>
-
-                                            {boxValue.id == item._id && boxValue.field == "statusId"
-                                                ? (
-                                                    <td>
-                                                        <select
-                                                            id="status"
-                                                            disabled={statusLoading}
-                                                            className="select select-bordered w-30"
-                                                            value={boxValue.currentValue || ""}
-                                                            onChange={(e) =>
-                                                                setBoxValue({ ...boxValue, currentValue: e.target.value })
-                                                            }
-                                                            ref={inputRef}
-                                                            aria-label="Select status"
-                                                        >
-                                                            <option value="" disabled>
-                                                                {statusLoading ? "Loading..." : "Select status"}
-                                                            </option>
-
-                                                            {statusOptions.map((opt) => (
-                                                                <option key={opt.value} value={opt.value}>
-                                                                    {opt.label}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "statusId", item.statusId?._id)}>{item.statusId?.name || "-"}</td>
-                                                )}
-
-                                            {boxValue.id == item._id && boxValue.field == "HPHTWeight"
-                                                ? (
-                                                    <td><input type="number" className="border rounded-md p-1 w-18" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "HPHTWeight", item.HPHTWeight)}>{item.HPHTWeight || "-"}</td>
-                                                )}
-
-                                            {boxValue.id == item._id && boxValue.field == "HPHTDate"
-                                                ? (
-                                                    <td><input type="date" className="border rounded-md p-1" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "HPHTDate", item.HPHTDate)}>{item.HPHTDate ? new Date(item.HPHTDate).toLocaleDateString() : "-"}</td>
-                                                )}
-
-                                            {boxValue.id == item._id && boxValue.field == "paymentStatusId"
-                                                ? (
-                                                    <td>
-                                                        <select
-                                                            id="paymentStatus"
-                                                            disabled={paymentStatusLoading}
-                                                            className="select select-bordered w-30"
-                                                            value={boxValue.currentValue || ""}
-                                                            onChange={(e) =>
-                                                                setBoxValue({ ...boxValue, currentValue: e.target.value })
-                                                            }
-                                                            ref={inputRef}
-                                                            aria-label="Select payment status"
-                                                        >
-                                                            <option value="" disabled>
-                                                                {paymentStatusLoading ? "Loading..." : "Select payment status"}
-                                                            </option>
-
-                                                            {paymentStatusOptions.map((opt) => (
-                                                                <option key={opt.value} value={opt.value}>
-                                                                    {opt.label}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "paymentStatusId", item.paymentStatusId?._id)}>{item.paymentStatusId?.name || "-"}</td>
-                                                )}
-
-                                            {boxValue.id == item._id && boxValue.field == "remark"
-                                                ? (
-                                                    <td><input type="text" className="border rounded-md p-1" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
-                                                )
-                                                : (
-                                                    <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "remark", item.remark)}>{item.remark || "-"}</td>
-                                                )}
-                                        </tr>
-                                    )
-                                    )}
+                                                    {boxValue.id == item._id && boxValue.field == "remark"
+                                                        ? (
+                                                            <td><input type="text" className="border rounded-md p-1" ref={inputRef} value={boxValue.currentValue} onChange={(e) => setBoxValue({ ...boxValue, currentValue: e.target.value })} /></td>
+                                                        )
+                                                        : (
+                                                            <td className="px-2 py-3.5 whitespace-nowrap" onDoubleClick={() => handleDoubleClick(item._id, "remark", item.remark)}>{item.remark || "-"}</td>
+                                                        )}
+                                                </motion.tr>
+                                            )
+                                            )
+                                    }
                                 </tbody>
                             </table>
                         </div>

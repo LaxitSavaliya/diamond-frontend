@@ -2,40 +2,27 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { allParty, getRates, createRate, addRate, deleteRateItem } from "../Lib/api";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const RatePage = () => {
     const queryClient = useQueryClient();
 
     // ---------------- STATES ----------------
     const [partyId, setPartyId] = useState("");
-
     const [openModal, setOpenModal] = useState(false);
     const [openAddModal, setOpenAddModal] = useState(false);
     const [openEditModal, setOpenEditModal] = useState(false);
-
     const [selectedRateId, setSelectedRateId] = useState("");
+    const [openDeleteModal, setOpenDeleteModal] = useState({ id: "", data: { itemId: "" } });
 
-    const [openDeleteModal, setOpenDeleteModal] = useState({
-        id: "",
-        data: { itemId: "" }
-    });
-
-    const [form, setForm] = useState({
-        startingValue: "",
-        endingValue: "",
-        rate: "",
-        date: "",
-    });
-
+    const [form, setForm] = useState({ startingValue: "", endingValue: "", rate: "", date: "" });
     const [addForm, setAddForm] = useState({ rate: "", date: "" });
-
     const [editForm, setEditForm] = useState({ rate: "", date: "" });
     const [editRateId, setEditRateId] = useState("");
     const [editItemId, setEditItemId] = useState("");
 
-
     // ---------------- FETCH QUERIES ----------------
-    const { data: rates } = useQuery({
+    const { data: rates, isLoading: isRatesLoading } = useQuery({
         queryKey: ["rate", partyId],
         queryFn: () => getRates({ partyId }),
         enabled: !!partyId,
@@ -48,7 +35,6 @@ const RatePage = () => {
         queryFn: allParty,
     });
 
-
     // ---------------- MUTATIONS ----------------
     const createMut = useMutation({
         mutationFn: createRate,
@@ -60,7 +46,7 @@ const RatePage = () => {
         onError: () => toast.error("Failed to create rate"),
     });
 
-    const AddMut = useMutation({
+    const addMut = useMutation({
         mutationFn: ({ id, newData }) => addRate(id, newData),
         onSuccess: () => {
             toast.success("Rate added!");
@@ -85,26 +71,16 @@ const RatePage = () => {
         onSuccess: () => {
             toast.success("Item deleted!");
             queryClient.invalidateQueries(["rate"]);
-        }
+        },
     });
-
 
     // ---------------- HANDLERS ----------------
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        if (!form.startingValue || !form.endingValue || !form.rate || !form.date) {
+        if (!form.startingValue || !form.endingValue || !form.rate || !form.date)
             return toast.error("All fields are required!");
-        }
-
         createMut.mutate({ ...form, partyId });
-
-        setForm({
-            startingValue: "",
-            endingValue: "",
-            rate: "",
-            date: "",
-        });
+        setForm({ startingValue: "", endingValue: "", rate: "", date: "" });
     };
 
     const openAddForm = (rateId) => {
@@ -115,43 +91,25 @@ const RatePage = () => {
 
     const handleAddSubmit = (e) => {
         e.preventDefault();
-
-        if (!addForm.rate || !addForm.date) {
-            return toast.error("All fields are required!");
-        }
-
-        AddMut.mutate({ id: selectedRateId, newData: addForm });
+        if (!addForm.rate || !addForm.date) return toast.error("All fields are required!");
+        addMut.mutate({ id: selectedRateId, newData: addForm });
     };
 
     const handleEdit = (rateId, itemData) => {
         setEditRateId(rateId);
         setEditItemId(itemData._id);
-
-        setEditForm({
-            rate: itemData.rate,
-            date: itemData.date.split("T")[0],
-        });
-
+        setEditForm({ rate: itemData.rate, date: itemData.date.split("T")[0] });
         setOpenEditModal(true);
     };
 
     const handleEditSubmit = (e) => {
         e.preventDefault();
-
-        if (!editForm.rate || !editForm.date) {
-            return toast.error("All fields are required!");
-        }
-
+        if (!editForm.rate || !editForm.date) return toast.error("All fields are required!");
         editMut.mutate({
             id: editRateId,
-            newData: {
-                itemId: editItemId,
-                rate: editForm.rate,
-                date: editForm.date,
-            }
+            newData: { itemId: editItemId, rate: editForm.rate, date: editForm.date },
         });
     };
-
 
     // ---------------- UI ----------------
     return (
@@ -172,7 +130,6 @@ const RatePage = () => {
                         ))}
                     </select>
                 </div>
-
                 {partyId && (
                     <button
                         onClick={() => setOpenModal(true)}
@@ -183,83 +140,102 @@ const RatePage = () => {
                 )}
             </div>
 
-
             {/* RATE LIST */}
             <div className="space-y-3 h-[80vh] md:h-[70vh] overflow-auto scrollbar-hide">
-                {rateList.map((item) => (
-                    <details key={item._id} className="collapse collapse-arrow bg-base-100 border rounded-lg" name="my-accordion-det-1">
-                        <summary className="collapse-title font-semibold flex justify-between">
-                            <span>Range: {item.startingValue} - {item.endingValue}</span>
-                            <span>Rate: {item.items[0]?.rate}</span>
-                        </summary>
+                {isRatesLoading ? (
+                    Array.from({ length: 5 }).map((_, idx) => (
+                        <div key={idx} className="animate-pulse collapse collapse-arrow rounded-lg p-8 bg-gray-300" />
+                    ))
+                ) : rateList.length > 0 ? (
+                    <AnimatePresence>
+                        {rateList.map((item, idx) => (
+                            <motion.details
+                                key={item._id}
+                                className="collapse collapse-arrow bg-base-100 border rounded-lg"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ delay: idx * 0.05 }}
+                            >
+                                <summary className="collapse-title font-semibold flex justify-between">
+                                    <span>Range: {item.startingValue} - {item.endingValue}</span>
+                                    <span>Rate: {item.items[0]?.rate}</span>
+                                </summary>
 
-                        <div className="collapse-content">
+                                <div className="collapse-content">
+                                    <div className="flex justify-end mb-2">
+                                        <button
+                                            className="border py-1 px-4 bg-base-content rounded-lg text-sm text-base-100 font-semibold cursor-pointer"
+                                            onClick={() => openAddForm(item._id)}
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
 
-                            <div className="flex justify-end mb-2">
-                                <button
-                                    className="border py-1 px-4 bg-base-content rounded-lg text-sm text-base-100 font-semibold cursor-pointer"
-                                    onClick={() => openAddForm(item._id)}
-                                >
-                                    Add
-                                </button>
-                            </div>
+                                    <div className="overflow-auto border rounded-2xl">
+                                        <table className="table w-full text-sm rounded-lg">
+                                            <thead>
+                                                <tr className="bg-base-200">
+                                                    <th>#</th>
+                                                    <th className="text-center">Rate</th>
+                                                    <th className="text-center">Date</th>
+                                                    <th className="text-center">Option</th>
+                                                </tr>
+                                            </thead>
 
-                            <div className="overflow-auto border rounded-2xl">
-                                <table className="table w-full text-sm rounded-lg">
-                                    <thead>
-                                        <tr className="bg-base-200">
-                                            <th>#</th>
-                                            <th className="text-center">Rate</th>
-                                            <th className="text-center">Date</th>
-                                            <th className="text-center">Option</th>
-                                        </tr>
-                                    </thead>
+                                            <tbody>
+                                                <AnimatePresence>
+                                                    {item.items?.length > 0 ? (
+                                                        item.items.map((it, index) => (
+                                                            <motion.tr
+                                                                key={it._id}
+                                                                initial={{ opacity: 0, x: -10 }}
+                                                                animate={{ opacity: 1, x: 0 }}
+                                                                exit={{ opacity: 0, x: 10 }}
+                                                                layout
+                                                                transition={{ duration: 0.3 }}
+                                                                className={editItemId === it._id && editMut.isSuccess ? "bg-green-100 animate-pulse" : ""}
+                                                            >
+                                                                <td>{index + 1}</td>
+                                                                <td className="text-center">{it.rate}</td>
+                                                                <td className="text-center">{new Date(it.date).toLocaleDateString()}</td>
+                                                                <td className="flex justify-center gap-3">
+                                                                    <button
+                                                                        onClick={() => handleEdit(item._id, it)}
+                                                                        className="border py-1 px-4 bg-green-400 rounded-lg text-sm text-base-100 font-semibold cursor-pointer"
+                                                                    >
+                                                                        Edit
+                                                                    </button>
 
-                                    <tbody>
-                                        {item.items?.map((it, index) => (
-                                            <tr key={it._id}>
-                                                <td>{index + 1}</td>
-                                                <td className="text-center">{it.rate}</td>
-                                                <td className="text-center">{new Date(it.date).toLocaleDateString()}</td>
-
-                                                <td className="flex justify-center gap-3">
-                                                    <button
-                                                        onClick={() => handleEdit(item._id, it)}
-                                                        className="border py-1 px-4 bg-green-400 rounded-lg text-sm text-base-100 font-semibold cursor-pointer"
-                                                    >
-                                                        Edit
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() =>
-                                                            setOpenDeleteModal({
-                                                                id: item._id,
-                                                                data: { itemId: it._id }
-                                                            })
-                                                        }
-                                                        className="border py-1 px-4 bg-red-400 rounded-lg text-sm text-base-100 font-semibold cursor-pointer"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-
-                                        {item.items?.length === 0 && (
-                                            <tr>
-                                                <td colSpan="4" className="text-center text-gray-500 p-3">
-                                                    No rate entries found.
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                        </div>
-                    </details>
-                ))}
+                                                                    <button
+                                                                        onClick={() => setOpenDeleteModal({ id: item._id, data: { itemId: it._id } })}
+                                                                        className="border py-1 px-4 bg-red-400 rounded-lg text-sm text-base-100 font-semibold cursor-pointer"
+                                                                    >
+                                                                        Delete
+                                                                    </button>
+                                                                </td>
+                                                            </motion.tr>
+                                                        ))
+                                                    ) : (
+                                                        <tr>
+                                                            <td colSpan="4" className="text-center text-gray-500 p-3">
+                                                                No rate entries found.
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </AnimatePresence>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </motion.details>
+                        ))}
+                    </AnimatePresence>
+                ) : partyId?.trim() !== "" ? (
+                    <div className="text-center text-gray-500 p-4">No rate ranges found.</div>
+                ) : null}
             </div>
+
 
 
             {/* CREATE MODAL */}
@@ -335,7 +311,7 @@ const RatePage = () => {
 
                             <div className="modal-action">
                                 <button type="button" onClick={() => setOpenModal(false)} className="btn">Cancel</button>
-                                <button type="submit" className="btn btn-primary text-white">Save</button>
+                                <button type="submit" className="btn btn-primary text-white" aria-disabled={createMut.isPending}>{createMut.isPending ? "Saving..." : "Save"}</button>
                             </div>
                         </form>
                     </div>
@@ -376,7 +352,7 @@ const RatePage = () => {
 
                             <div className="modal-action">
                                 <button type="button" onClick={() => setOpenAddModal(false)} className="btn">Cancel</button>
-                                <button type="submit" className="btn btn-primary text-white">Save</button>
+                                <button type="submit" className="btn btn-primary text-white" aria-disabled={AddMut.isPending}>{AddMut.isPending ? "Saving..." : "Save"}</button>
                             </div>
                         </form>
                     </div>
@@ -416,7 +392,7 @@ const RatePage = () => {
 
                             <div className="modal-action">
                                 <button type="button" onClick={() => setOpenEditModal(false)} className="btn">Cancel</button>
-                                <button type="submit" className="btn btn-primary text-white">Update</button>
+                                <button type="submit" className="btn btn-primary text-white" aria-disabled={editMut.isPending} >{editMut.isPending ? "Updating..." : "Update"}</button>
                             </div>
                         </form>
                     </div>
@@ -443,11 +419,14 @@ const RatePage = () => {
                             <button
                                 className="btn btn-error btn-sm"
                                 onClick={() => {
-                                    deleteItemMutation.mutate(openDeleteModal);
-                                    setOpenDeleteModal({ id: "", data: { itemId: "" } });
+                                    deleteItemMutation.mutate(openDeleteModal, {
+                                        onSuccess: () => {
+                                            setOpenDeleteModal({ id: "", data: { itemId: "" } });
+                                        }
+                                    });
                                 }}
                             >
-                                Delete
+                                {deleteItemMutation.isPending ? "Deleting..." : "Delete"}
                             </button>
                         </div>
                     </div>
