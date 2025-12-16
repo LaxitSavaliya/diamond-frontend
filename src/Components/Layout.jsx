@@ -7,15 +7,14 @@ import {
     FileChartPie,
     CircleDollarSign,
     ClipboardType,
-    FormInputIcon,
     Menu,
-    Palette,
     Eye,
     EyeClosed,
-    Radiation,
     Monitor,
     LogOut,
-    FileText
+    FileText,
+    User2,
+    NotepadText
 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import ThemeSelector from "./ThemeSelector";
@@ -97,25 +96,27 @@ const Layout = ({ user, children, onToggle, showTotal, showIcon }) => {
                     {/* MENU */}
                     <ul className="menu w-full flex-1 px-2 gap-1.5">
                         {[
-                            { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard /> },
-                            { to: "/color", label: "Color", icon: <PaintbrushVertical /> },
-                            { to: "/clarity", label: "Clarity", icon: <Gem /> },
-                            { to: "/shape", label: "Shape", icon: <Box /> },
-                            { to: "/party", label: "Party", icon: <PersonStanding /> },
-                            { to: "/status", label: "Status", icon: <FileChartPie /> },
-                            { to: "/paymentStatus", label: "PaymentStatus", icon: <CircleDollarSign /> },
-                            { to: "/rate", label: "Rate", icon: <Monitor /> },
-                            { to: "/form", label: "Form", icon: <ClipboardType /> },
-                            { to: "/diamond-table", label: "Diamond", icon: <Gem /> },
-                            { to: "/record", label: "Record", icon: <FileText /> },
+                            { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="size-5" /> },
+                            { to: "/color", label: "Color", icon: <PaintbrushVertical className="size-5" /> },
+                            { to: "/clarity", label: "Clarity", icon: <Gem className="size-5" /> },
+                            { to: "/shape", label: "Shape", icon: <Box className="size-5" /> },
+                            { to: "/party", label: "Party", icon: <PersonStanding className="size-5" /> },
+                            { to: "/status", label: "Status", icon: <FileChartPie className="size-5" /> },
+                            { to: "/paymentStatus", label: "PaymentStatus", icon: <CircleDollarSign className="size-5" /> },
+                            { to: "/rate", label: "Rate", icon: <Monitor className="size-5" /> },
+                            { to: "/form", label: "Form", icon: <ClipboardType className="size-5" /> },
+                            { to: "/diamond-table", label: "Diamond", icon: <Gem className="size-5" /> },
+                            { to: "/record", label: "Record", icon: <FileText className="size-5" /> },
+                            { to: "/employee", label: "Employee", icon: <User2 className="size-5" /> },
+                            { to: "/employee-attendance", label: "Attendance", icon: <NotepadText className="size-5" /> },
                         ].map((menu, i) => (
                             <li key={i}>
                                 <Link
                                     to={menu.to}
-                                    className={`flex gap-3 items-center p-3 rounded-lg transition text-base is-drawer-close:tooltip is-drawer-close:tooltip-right ${currentPath === menu.to ? "bg-base-content text-base-100 shadow-md" : "hover:bg-base-200"}`}
+                                    className={`flex gap-3 items-center py-2 px-3.5 rounded-lg transition text-base is-drawer-close:tooltip is-drawer-close:tooltip-right ${currentPath === menu.to ? "bg-base-content text-base-100 shadow-md" : "hover:bg-base-200"}`}
                                     data-tip={menu.label}
                                 >
-                                    <div className="size-5">{menu.icon}</div>
+                                    <div>{menu.icon}</div>
                                     <span className="is-drawer-close:hidden">{menu.label}</span>
                                 </Link>
                             </li>

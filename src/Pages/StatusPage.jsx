@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SkeletonRow from "../Components/SkeletonRow";
 import { motion, AnimatePresence } from "framer-motion";
+import Pagination from "../Components/Common/Pagination";
 
 const StatusPage = () => {
     const [page, setPage] = useState(1);
@@ -258,17 +259,7 @@ const StatusPage = () => {
             </div>
 
             {/* ======================= PAGINATION ======================= */}
-            <div className="mt-auto py-3 flex justify-center items-center gap-5 sticky bottom-0 bg-base-100 bg-opacity-80 backdrop-blur-md">
-                <ChevronLeft
-                    className="cursor-pointer hover:bg-base-300 rounded-full p-1 size-8"
-                    onClick={() => page > 1 && setPage((p) => p - 1)}
-                />
-                <span>{page} / {statusList?.totalPages}</span>
-                <ChevronRight
-                    className="cursor-pointer hover:bg-base-300 rounded-full p-1 size-8"
-                    onClick={() => page < statusList?.totalPages && setPage((p) => p + 1)}
-                />
-            </div>
+            <Pagination page={page} totalPages={statusList?.totalPages} onPrev={() => setPage((p) => p - 1)} onNext={() => setPage((p) => p + 1)} />
 
             {/* ======================= ADD / EDIT MODAL ======================= */}
             <AnimatePresence>

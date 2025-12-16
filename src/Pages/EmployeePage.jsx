@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addClarity, clarityData, updateClarity, deleteClarity } from "../Lib/api";
+import { employeeData, addEmployee, updateEmployee, deleteEmployee } from "../Lib/api";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -7,11 +7,12 @@ import SkeletonRow from "../Components/SkeletonRow";
 import { motion, AnimatePresence } from "framer-motion";
 import Pagination from "../Components/Common/Pagination";
 
-const ClarityPage = () => {
+const EmployeePage = () => {
     const [page, setPage] = useState(1);
     const [name, setName] = useState("");
     const [editId, setEditId] = useState(null);
     const [openModal, setOpenModal] = useState(false);
+
     const [updatingId, setUpdatingId] = useState(null);
 
     const [openDeleteModal, setOpenDeleteModal] = useState({
@@ -32,37 +33,37 @@ const ClarityPage = () => {
     const queryClient = useQueryClient();
 
     /* ============================
-            FETCH CLARITY DATA
+            FETCH EMPLOYEE DATA
        ============================ */
-    const { data: clarities, isLoading } = useQuery({
-        queryKey: ["clarity", page, searchTerm, status],
-        queryFn: () => clarityData(page, searchTerm, status),
+    const { data: employees, isLoading } = useQuery({
+        queryKey: ["employee", page, searchTerm, status],
+        queryFn: () => employeeData(page, searchTerm, status),
     });
 
     /* ============================
-            CREATE CLARITY
+            CREATE EMPLOYEE
        ============================ */
-    const createClarityMutation = useMutation({
-        mutationFn: addClarity,
+    const createEmployeeMutation = useMutation({
+        mutationFn: addEmployee,
         onSuccess: () => {
-            toast.success("Clarity added successfully");
+            toast.success("Employee added successfully");
             closeModal();
-            queryClient.invalidateQueries({ queryKey: ["clarity"] });
+            queryClient.invalidateQueries({ queryKey: ["employee"] });
         },
     });
 
     /* ============================
-            UPDATE CLARITY
+            UPDATE EMPLOYEE
        ============================ */
-    const updateClarityMutation = useMutation({
+    const updateEmployeeMutation = useMutation({
         mutationFn: async ({ id, newData }) => {
             setUpdatingId(id);
-            return updateClarity(id, newData);
+            return updateEmployee(id, newData);
         },
         onSuccess: () => {
-            toast.success("Clarity updated successfully");
+            toast.success("Employee updated successfully");
             closeModal();
-            queryClient.invalidateQueries({ queryKey: ["clarity"] });
+            queryClient.invalidateQueries({ queryKey: ["employee"] });
         },
         onSettled: () => {
             setUpdatingId(null);
@@ -70,13 +71,13 @@ const ClarityPage = () => {
     });
 
     /* ============================
-            DELETE CLARITY
+            DELETE EMPLOYEE
        ============================ */
-    const deleteClarityMutation = useMutation({
-        mutationFn: deleteClarity,
+    const deleteEmployeeMutation = useMutation({
+        mutationFn: deleteEmployee,
         onSuccess: () => {
-            toast.success("Clarity deleted");
-            queryClient.invalidateQueries({ queryKey: ["clarity"] });
+            toast.success("Employee deleted");
+            queryClient.invalidateQueries({ queryKey: ["employee"] });
         }
     });
 
@@ -94,23 +95,23 @@ const ClarityPage = () => {
         if (!name.trim()) return;
 
         if (editId) {
-            updateClarityMutation.mutate({ id: editId, newData: { name } });
+            updateEmployeeMutation.mutate({ id: editId, newData: { name } });
         } else {
-            createClarityMutation.mutate({ name, active: true });
+            createEmployeeMutation.mutate({ name, active: true });
         }
     };
 
     return (
         <div className="w-full py-5 px-3 md:p-6 h-full overflow-auto md:max-h-[87vh] scrollbar-hide flex flex-col bg-base-100 text-base-content">
 
-            {/* HEADER */}
+            {/* ======================= HEADER ======================= */}
             <div className="flex justify-between items-center mb-4">
                 <motion.h1
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-2xl sm:text-3xl font-bold"
                 >
-                    Clarity Management
+                    Employee Management
                 </motion.h1>
 
                 <motion.button
@@ -122,7 +123,7 @@ const ClarityPage = () => {
                 </motion.button>
             </div>
 
-            {/* FILTERS */}
+            {/* ======================= FILTERS ======================= */}
             <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
                 <div className="flex gap-3 md:gap-10 md:pl-4">
                     <input
@@ -156,13 +157,13 @@ const ClarityPage = () => {
                 </motion.button>
             </div>
 
-            {/* TABLE */}
+            {/* ======================= TABLE ======================= */}
             <div className="rounded-2xl shadow-md mt-5 overflow-auto border border-base-content bg-base-100 scrollbar-hide">
                 <table className="min-w-full table-fixed">
                     <thead className="bg-slate-400 text-base-100 sticky top-0 z-10">
                         <tr>
                             <th className="p-4 font-semibold text-left">No</th>
-                            <th className="p-4 font-semibold text-left">Clarity</th>
+                            <th className="p-4 font-semibold text-left">Employee</th>
                             <th className="p-4 font-semibold text-center">Active</th>
                             <th className="p-4 font-semibold text-center">Actions</th>
                         </tr>
@@ -172,9 +173,9 @@ const ClarityPage = () => {
                         {isLoading ? (
                             [...Array(5)].map((_, i) => <SkeletonRow key={i} />)
                         ) : (
-                            clarities?.data?.map((clarity, idx) => (
+                            employees?.data?.map((employee, idx) => (
                                 <motion.tr
-                                    key={clarity._id}
+                                    key={employee._id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{
@@ -186,37 +187,37 @@ const ClarityPage = () => {
                                 >
                                     <td className="p-4">{(page - 1) * 5 + (idx + 1)}</td>
 
-                                    <td className="p-4 font-medium">{clarity.name}</td>
+                                    <td className="p-4 font-medium">{employee.name}</td>
 
-                                    {/* ACTIVE / DEACTIVE TOGGLE */}
+                                    {/* ======================= TOGGLE BUTTON ======================= */}
                                     <td className="p-4 text-center">
                                         <motion.button
-                                            disabled={updatingId === clarity._id}
+                                            disabled={updatingId === employee._id}
                                             whileTap={{
-                                                scale: updatingId === clarity._id ? 1 : 0.9,
+                                                scale: updatingId === employee._id ? 1 : 0.9,
                                             }}
                                             onClick={() =>
-                                                updateClarityMutation.mutate({
-                                                    id: clarity._id,
-                                                    newData: { active: !clarity.active },
+                                                updateEmployeeMutation.mutate({
+                                                    id: employee._id,
+                                                    newData: { active: !employee.active },
                                                 })
                                             }
                                             className={`
                                                 relative inline-flex h-6 w-12 items-center rounded-full transition cursor-pointer
-                                                ${clarity.active ? "bg-base-content" : "bg-neutral-content opacity-70"}
-                                                ${updatingId === clarity._id ? "opacity-60" : ""}
+                                                ${employee.active ? "bg-base-content" : "bg-neutral-content opacity-70"}
+                                                ${updatingId === employee._id ? "opacity-60" : ""}
                                             `}
                                         >
                                             <motion.span
                                                 animate={{
-                                                    x: clarity.active ? 24 : 4,
-                                                    scale: updatingId === clarity._id ? 0.7 : 1,
+                                                    x: employee.active ? 24 : 4,
+                                                    scale: updatingId === employee._id ? 0.7 : 1,
                                                 }}
                                                 transition={{ type: "spring", stiffness: 300, damping: 18 }}
                                                 className="inline-block h-5 w-5 rounded-full bg-base-100 relative"
                                             >
                                                 <AnimatePresence>
-                                                    {updatingId === clarity._id && (
+                                                    {updatingId === employee._id && (
                                                         <motion.div
                                                             initial={{ opacity: 0 }}
                                                             animate={{ opacity: 1 }}
@@ -239,14 +240,14 @@ const ClarityPage = () => {
                                         </motion.button>
                                     </td>
 
-                                    {/* ACTION BUTTONS */}
+                                    {/* ======================= ACTIONS ======================= */}
                                     <td className="p-4">
                                         <div className="flex gap-3 justify-center">
                                             <motion.button
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => {
-                                                    setEditId(clarity._id);
-                                                    setName(clarity.name);
+                                                    setEditId(employee._id);
+                                                    setName(employee.name);
                                                     setOpenModal(true);
                                                 }}
                                                 className="btn btn-outline btn-primary btn-sm"
@@ -258,8 +259,8 @@ const ClarityPage = () => {
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() =>
                                                     setOpenDeleteModal({
-                                                        name: clarity.name,
-                                                        id: clarity._id,
+                                                        name: employee.name,
+                                                        id: employee._id,
                                                     })
                                                 }
                                                 className="btn btn-error btn-sm text-white"
@@ -275,10 +276,10 @@ const ClarityPage = () => {
                 </table>
             </div>
 
-            {/* PAGINATION */}
-            <Pagination page={page} totalPages={clarities?.totalPages} onPrev={() => setPage((p) => p - 1)} onNext={() => setPage((p) => p + 1)} />
+            {/* ======================= PAGINATION ======================= */}
+            <Pagination page={page} totalPages={employees?.totalPages} onPrev={() => setPage((p) => p - 1)} onNext={() => setPage((p) => p + 1)} />
 
-            {/* ADD / EDIT MODAL */}
+            {/* ======================= ADD / EDIT MODAL ======================= */}
             <AnimatePresence>
                 {openModal && (
                     <motion.div
@@ -294,13 +295,13 @@ const ClarityPage = () => {
                             className="p-6 rounded-2xl w-full max-w-md shadow-xl border border-base-300 bg-base-200"
                         >
                             <h2 className="text-xl font-bold mb-4">
-                                {editId ? "Update Clarity" : "Add Clarity"}
+                                {editId ? "Update Employee" : "Add Employee"}
                             </h2>
 
                             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                                 <input
                                     type="text"
-                                    placeholder="Enter Clarity Name"
+                                    placeholder="Enter Employee Name"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     className="input input-bordered w-full"
@@ -311,7 +312,6 @@ const ClarityPage = () => {
                                         type="button"
                                         onClick={closeModal}
                                         className="btn btn-outline"
-                                        disabled={createClarityMutation.isPending || updateClarityMutation.isPending}
                                     >
                                         Cancel
                                     </button>
@@ -319,9 +319,9 @@ const ClarityPage = () => {
                                     <button
                                         type="submit"
                                         className="btn btn-primary text-white"
-                                        disabled={createClarityMutation.isPending || updateClarityMutation.isPending}
+                                        aria-disabled={createEmployeeMutation.isPending || updateEmployeeMutation.isPending}
                                     >
-                                        {createClarityMutation.isPending || updateClarityMutation.isPending
+                                        {createEmployeeMutation.isPending || updateEmployeeMutation.isPending
                                             ? (editId ? "Updating..." : "Adding...")
                                             : (editId ? "Update" : "Add")}
                                     </button>
@@ -332,7 +332,7 @@ const ClarityPage = () => {
                 )}
             </AnimatePresence>
 
-            {/* DELETE MODAL */}
+            {/* ======================= DELETE MODAL ======================= */}
             <AnimatePresence>
                 {openDeleteModal.id && (
                     <motion.div
@@ -368,7 +368,7 @@ const ClarityPage = () => {
                                 <button
                                     className="btn btn-error btn-sm text-white"
                                     onClick={() => {
-                                        deleteClarityMutation.mutate(openDeleteModal.id);
+                                        deleteEmployeeMutation.mutate(openDeleteModal.id);
                                         setOpenDeleteModal({ name: "", id: "" });
                                     }}
                                 >
@@ -384,4 +384,4 @@ const ClarityPage = () => {
     );
 };
 
-export default ClarityPage;
+export default EmployeePage;

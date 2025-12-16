@@ -1,7 +1,8 @@
 import axios from "axios";
+import { data } from "react-router-dom";
 
 const axiosInstance = axios.create({
-  baseURL: "https://diamondapi.onrender.com/api",
+  baseURL: "http://localhost:8000/api",
   withCredentials: true,
 });
 
@@ -185,3 +186,20 @@ export const deleteRateItem = async (id, data) => {
   const response = await axiosInstance.put(`/rate/deleteItem/${id}`, data);
   return response.data;
 }
+
+export const employeeData = (page, search, status) =>
+  getList("/employee", page, search, status);
+
+export const addEmployee = (data) => createItem("/employee", data);
+export const updateEmployee = (id, data) => updateItem("/employee", id, data);
+export const deleteEmployee = (id) => deleteItem("/employee", id);
+
+
+export const allAttendance = async (month, year) => {
+    const res = await axiosInstance.get(`/attendance`, {
+        params: { month, year },
+    });
+    return res.data;
+};
+
+export const addAttendance = (data) => createItem("/attendance", data);

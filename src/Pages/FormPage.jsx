@@ -10,7 +10,7 @@ const emptyItem = () => ({
     issueWeight: "",
     expectedWeight: "",
     shapeId: "",
-    date: "",
+    date: new Date().toISOString().split("T")[0],
 });
 
 const FormPage = () => {

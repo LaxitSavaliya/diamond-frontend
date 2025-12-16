@@ -18,6 +18,8 @@ import DiamondTable from './Pages/DiamondTable';
 import { useState } from 'react';
 import RatePage from './Pages/RatePage';
 import RecordPage from './Pages/RecordPage';
+import EmployeePage from './Pages/EmployeePage';
+import AttendancePage from './Components/AttendancePage';
 
 const App = () => {
 
@@ -48,6 +50,8 @@ const App = () => {
         <Route path='/form' element={isAuthenticated ? <Layout user={authUser?.data?.userName}><FormPage /></Layout> : <Navigate to='/login' />} />
         <Route path='/diamond-table' element={isAuthenticated ? <Layout onToggle={() => setShowTotal(!showTotal)} showTotal={showTotal} showIcon={showIcon} user={authUser?.data?.userName}><DiamondTable showIcon={() => setShowIcon(false)} showTotal={showTotal} /></Layout> : <Navigate to='/login' />} />
         <Route path='/record' element={isAuthenticated ? <Layout user={authUser?.data?.userName}><RecordPage /></Layout> : <Navigate to='/login' />} />
+        <Route path='/employee' element={isAuthenticated ? <Layout user={authUser?.data?.userName}><EmployeePage /></Layout> : <Navigate to='/login' />} />
+        <Route path='/employee-attendance' element={isAuthenticated ? <Layout user={authUser?.data?.userName}><AttendancePage /></Layout> : <Navigate to='/login' />} />
 
 
         <Route path='*' element={<PageNotFound />} />
