@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://diamond-backend-t6cb.onrender.com//api",
+  baseURL: "https://diamond-backend-t6cb.onrender.com/api",
   withCredentials: true,
 });
 
