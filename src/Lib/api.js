@@ -1,8 +1,7 @@
 import axios from "axios";
-import { data } from "react-router-dom";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: "https://diamond-backend-t6cb.onrender.com//api",
   withCredentials: true,
 });
 
