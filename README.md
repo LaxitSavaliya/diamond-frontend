@@ -1,16 +1,115 @@
-# React + Vite
+# Diamond Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![React](https://img.shields.io/badge/react-19.2.0-61dafb)
+![Vite](https://img.shields.io/badge/vite-7.2.5-646cff)
+![Tailwind](https://img.shields.io/badge/tailwindcss-4.1.17-38bdf8)
 
-Currently, two official plugins are available:
+## Project Title
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Diamond Frontend is a React + Vite single-page application for
+managing diamond operations. It covers authentication, master data,
+diamond lots, rates, transactions, employees, and attendance with a
+responsive dashboard UI.
 
-## React Compiler
+## Installation
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js: >= 18
+- Package manager: npm or yarn
+- Install dependencies:
 
-## Expanding the ESLint configuration
+```bash
+npm install
+# or
+yarn install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Development Setup
+
+- API endpoint:
+  - Local: `http://localhost:8000/api`
+  - Production (example): `https://diamond-backend-t6cb.onrender.com/api`
+  - Configured in `src/Lib/api.js`.
+- Environment variables:
+  - Optional: `VITE_*` variables can be added later if needed.
+- Start dev server:
+
+```bash
+npm run dev
+```
+
+The app runs on `http://localhost:5173`.
+
+### Diagram
+
+```mermaid
+flowchart LR
+  UI[React Components] --> State[Zustand & React Query]
+  State --> API[Axios Client]
+  API --> Backend[(Express API)]
+```
+
+## Build Instructions
+
+- Build command:
+
+```bash
+npm run build
+```
+
+- Output directory: `dist/`
+- Optimizations:
+  - Vite production build (code splitting, minification, hashed assets).
+  - React optimized runtime with fast refresh in dev.
+
+## Testing
+
+- Test suites: not configured.
+- Linting:
+
+```bash
+npm run lint
+```
+
+Add testing later with Vitest/Jest if desired.
+
+## Deployment
+
+- Static hosting (Vercel, Netlify, S3 + CDN).
+- Vercel:
+  - Uses `vercel.json` rewrites to support SPA routing.
+  - Set backend API URL (if different) in `src/Lib/api.js`.
+- Steps:
+  - Build locally or let the platform build.
+  - Deploy `dist/` as the static output.
+
+## Project Structure
+
+```
+Frontend/
+├─ index.html
+├─ package.json
+├─ eslint.config.js
+├─ vercel.json
+└─ src/
+   ├─ App.jsx
+   ├─ main.jsx
+   ├─ index.css
+   ├─ Lib/api.js
+   ├─ Components/
+   ├─ Pages/
+   ├─ Context/
+   ├─ Hooks/
+   └─ Store/
+```
+
+## Contributing
+
+- Branching: feature branches; PRs into `main`.
+- Commit messages: Conventional Commits (`feat:`, `fix:`, `docs:`).
+- PRs: include description, screenshots for UI, and lint pass.
+- Style: follow ESLint rules and keep components focused.
+
+## License
+
+This project currently does not contain an explicit license.
